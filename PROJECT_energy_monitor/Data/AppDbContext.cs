@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PowerMonitor.API.Models;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace PowerMonitor.API.Data
 {
@@ -15,15 +13,28 @@ namespace PowerMonitor.API.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            // Налаштування зв'язку Generator -> SensorReading
             modelBuilder.Entity<Generator>()
                 .HasMany(g => g.Readings)
                 .WithOne(r => r.Generator)
-                .HasForeignKey(r => r.GeneratorId);
+                .HasForeignKey(r => r.GeneratorId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Налаштування зв'язку Generator -> Alert
             modelBuilder.Entity<Generator>()
                 .HasMany(g => g.Alerts)
                 .WithOne(a => a.Generator)
-                .HasForeignKey(a => a.GeneratorId);
+                .HasForeignKey(a => a.GeneratorId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Додатково: індекси для швидких запитів (рекомендовано для реального часу)
+            modelBuilder.Entity<SensorReading>()
+                .HasIndex(r => r.Timestamp);
+
+            modelBuilder.Entity<SensorReading>()
+                .HasIndex(r => new { r.GeneratorId, r.Timestamp });
         }
     }
 }
