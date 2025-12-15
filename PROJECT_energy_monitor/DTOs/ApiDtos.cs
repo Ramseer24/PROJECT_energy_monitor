@@ -15,5 +15,11 @@ namespace PowerMonitor.API.DTOs
     public record GeneratorDto(int Id, string Name, string Type, double MaxPowerOutput);
 
     // DTO для створення генератора
-    public record GeneratorCreateDto(string Name, string Type, double MaxPowerOutput);
+    public record GeneratorCreateDto(string Name, string Type, double MaxPowerOutput)
+    {
+
+        public record ThresholdDto(int SensorId, double? MinValue, double? MaxValue, string AlertMessage);
+
+        public record UserCreateDto(string Username, string PasswordHash, string FullName, string Role);
+    };
 }

@@ -7,34 +7,30 @@ namespace PowerMonitor.API.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<Generator> Generators { get; set; }
-        public DbSet<SensorReading> SensorReadings { get; set; }
-        public DbSet<Alert> Alerts { get; set; }
+        public DbSet<Generator> Generators { get; set; } = null!;
+        public DbSet<SensorReading> SensorReadings { get; set; } = null!;
+        public DbSet<Alert> Alerts { get; set; } = null!;
+        public DbSet<Threshold> Thresholds { get; set; } = null!;
+        public DbSet<User> Users { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-            // Налаштування зв'язку Generator -> SensorReading
+            // Налаштування зв'язків (без UserAcknowledged)
             modelBuilder.Entity<Generator>()
                 .HasMany(g => g.Readings)
                 .WithOne(r => r.Generator)
                 .HasForeignKey(r => r.GeneratorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Налаштування зв'язку Generator -> Alert
             modelBuilder.Entity<Generator>()
                 .HasMany(g => g.Alerts)
                 .WithOne(a => a.Generator)
                 .HasForeignKey(a => a.GeneratorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Додатково: індекси для швидких запитів (рекомендовано для реального часу)
+            // Індекси для швидких запитів
             modelBuilder.Entity<SensorReading>()
                 .HasIndex(r => r.Timestamp);
-
-            modelBuilder.Entity<SensorReading>()
-                .HasIndex(r => new { r.GeneratorId, r.Timestamp });
         }
     }
 }
