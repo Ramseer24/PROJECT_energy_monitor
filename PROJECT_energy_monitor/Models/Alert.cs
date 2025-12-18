@@ -9,11 +9,10 @@ namespace PowerMonitor.API.Models
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string Message { get; set; } = string.Empty;
-        public bool IsResolved { get; set; } = false;
 
-        // Логування: хто підтвердив (ID користувача)
+        // Використовуємо тільки Acknowledged (IsResolved — застаріле)
+        public bool Acknowledged { get; set; } = false;
         public int? AcknowledgedBy { get; set; }
-
         public DateTime? AcknowledgedAt { get; set; }
 
         [ForeignKey("Generator")]

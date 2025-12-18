@@ -5,7 +5,7 @@ namespace PowerMonitor.API.Models
     public class Threshold
     {
         [Key]
-        public int Id { get; set; }
+        public int ThresholdId { get; set; }
         public int SensorId { get; set; }  // Зв'язок з сенсором
         public double? MinValue { get; set; }
         public double? MaxValue { get; set; }

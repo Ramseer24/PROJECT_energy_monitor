@@ -1,25 +1,33 @@
-﻿// ApiDtos.cs (файл: DTOs/ApiDtos.cs)
+﻿using System;
+
 namespace PowerMonitor.API.DTOs
 {
-    // DTO для нового зчитування від IoT-модуля
-    public record ReadingDto(int GeneratorId, double Voltage, double Current, double Temperature, int Rpm)
-    {
-        // Додаткове поле для розрахунку потужності (P = U * I)
-        public double Power => Voltage * Current;
-    }
+    /// <summary>
+    /// DTO для прийому нових зчитувань від сенсорів (IoT-модуль)
+    /// </summary>
+    public record ReadingDto(
+        int GeneratorId,
+        double Voltage,
+        double Current,
+        double Temperature,
+        int Rpm);
 
-    // DTO для сповіщень
-    public record AlertDto(int Id, string GeneratorName, string Message, DateTime Time);
+    /// <summary>
+    /// DTO для створення генератора
+    /// </summary>
+    public record GeneratorCreateDto(
+        string Name,
+        string Type,
+        double MaxPowerOutput);
 
-    // DTO для генератора (спрощений)
-    public record GeneratorDto(int Id, string Name, string Type, double MaxPowerOutput);
-
-    // DTO для створення генератора
-    public record GeneratorCreateDto(string Name, string Type, double MaxPowerOutput)
-    {
-
-        public record ThresholdDto(int SensorId, double? MinValue, double? MaxValue, string AlertMessage);
-
-        public record UserCreateDto(string Username, string PasswordHash, string FullName, string Role);
-    };
+    /// <summary>
+    /// DTO для відображення сповіщення (корисний для адмін-панелі)
+    /// </summary>
+    public record AlertDto(
+        int Id,
+        string GeneratorName,
+        string Message,
+        DateTime CreatedAt,
+        bool Acknowledged,
+        DateTime? AcknowledgedAt);
 }

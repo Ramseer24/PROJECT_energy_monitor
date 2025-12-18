@@ -6,7 +6,7 @@ namespace PowerMonitor.API.Models
     public class SensorReading
     {
         [Key]
-        public int Id { get; set; }
+        public int SensorReadingId { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
         public double Voltage { get; set; }
         public double Current { get; set; }

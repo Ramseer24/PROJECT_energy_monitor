@@ -5,7 +5,7 @@ namespace PowerMonitor.API.Models
     public class Generator
     {
         [Key]
-        public int Id { get; set; }
+        public int GeneratorId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Type { get; set; } = string.Empty;
         public double MaxPowerOutput { get; set; }
