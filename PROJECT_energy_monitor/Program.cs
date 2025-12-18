@@ -1,8 +1,13 @@
-﻿using PowerMonitor.API.Data;
+﻿using PowerMonitor.API.Data;  // Додано для AppDbContext
 using PowerMonitor.API.Repositories;
+using Microsoft.EntityFrameworkCore;  // Додано для AddDbContext
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// === Реєстрація DbContext з підключенням до хмарної бази на Render ===
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql("postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
 
 // === Репозиторій ===
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -28,7 +33,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.RoutePrefix = string.Empty;  // Swagger відкривається відразу на головній сторінці
+    options.RoutePrefix = string.Empty;
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API v1");
 });
 
@@ -38,6 +43,3 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
-
-// === Автовідкриття браузера видалено — працює тільки локально (в DEBUG) ===
-// На хостингу (Render) це не потрібно, проект запускається автоматично
