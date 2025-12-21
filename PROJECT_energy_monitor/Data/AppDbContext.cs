@@ -1,35 +1,40 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PowerMonitor.API.Models;
 
-namespace PowerMonitor.API.Data
+namespace PowerMonitor.API.Data;
+
+public class AppDbContext : DbContext
 {
-    public class AppDbContext : DbContext
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+    public DbSet<Device> Devices { get; set; } = null!;
+    public DbSet<Sensor> Sensors { get; set; } = null!;
+    public DbSet<SensorReading> SensorReadings { get; set; } = null!;
+    public DbSet<Threshold> Thresholds { get; set; } = null!;
+    public DbSet<Alert> Alerts { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        modelBuilder.Entity<Device>()
+            .HasMany(d => d.Sensors)
+            .WithOne(s => s.Device)
+            .HasForeignKey(s => s.DeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        public DbSet<Generator> Generators { get; set; } = null!;
-        public DbSet<SensorReading> SensorReadings { get; set; } = null!;
-        public DbSet<Alert> Alerts { get; set; } = null!;
-        public DbSet<Threshold> Thresholds { get; set; } = null!;
-        public DbSet<User> Users { get; set; } = null!;
+        modelBuilder.Entity<Sensor>()
+            .HasMany(s => s.Readings)
+            .WithOne(r => r.Sensor)
+            .HasForeignKey(r => r.SensorId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            // Зв'язки та індекси (без змін)
-            modelBuilder.Entity<Generator>()
-                .HasMany(g => g.Readings)
-                .WithOne(r => r.Generator)
-                .HasForeignKey(r => r.GeneratorId)
-                .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Sensor>()
+            .HasMany(s => s.Thresholds)
+            .WithOne(t => t.Sensor)
+            .HasForeignKey(t => t.SensorId)
+            .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Generator>()
-                .HasMany(g => g.Alerts)
-                .WithOne(a => a.Generator)
-                .HasForeignKey(a => a.GeneratorId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<SensorReading>()
-                .HasIndex(r => r.Timestamp);
-        }
+        modelBuilder.Entity<SensorReading>()
+            .HasIndex(r => new { r.SensorId, r.Timestamp });
     }
 }

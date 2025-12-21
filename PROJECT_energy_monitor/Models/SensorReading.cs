@@ -1,24 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;  // ДОДАНО
+﻿using System.Text.Json.Serialization;
 
-namespace PowerMonitor.API.Models
+namespace PowerMonitor.API.Models;
+
+public class SensorReading
 {
-    public class SensorReading
-    {
-        [Key]
-        public int SensorReadingId { get; set; }
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-        public double Voltage { get; set; }
-        public double Current { get; set; }
-        public double Power { get; set; }
-        public double Temperature { get; set; }
-        public int Rpm { get; set; }
+    public long ReadingId { get; set; }
+    public int SensorId { get; set; }
+    public double Value { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-        [ForeignKey("Generator")]
-        public int GeneratorId { get; set; }
-
-        [JsonIgnore]  // ДОДАНО – запобігає циклу
-        public Generator? Generator { get; set; }
-    }
+    [JsonIgnore]
+    public Sensor? Sensor { get; set; }
 }

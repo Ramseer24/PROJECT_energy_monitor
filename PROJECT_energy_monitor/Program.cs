@@ -1,43 +1,34 @@
 ﻿using PowerMonitor.API.Data;
 using PowerMonitor.API.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Додайте сервіси
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();  // ← Обов'язково для Swagger
 
-// Підключення БД (вже є у вас)
+// Swagger завжди ввімкнено
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new() { Title = "PowerMonitor API", Version = "v1" });
+});
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Репозиторії (вже є)
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 var app = builder.Build();
 
-// === ВИПРАВЛЕННЯ: Вмикаємо Swagger завжди (навіть у Production) ===
-if (app.Environment.IsDevelopment())
+// Swagger доступний завжди
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-else
-{
-    // Додаємо для Production (на Render)
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API V1");
-        c.RoutePrefix = "swagger";  // /swagger
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API V1");
+    c.RoutePrefix = "swagger"; // → https://your-url.onrender.com/swagger
+});
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

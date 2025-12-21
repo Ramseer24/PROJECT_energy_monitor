@@ -1,26 +1,21 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;  // ДОДАНО
+﻿using System.Text.Json.Serialization;
 
-namespace PowerMonitor.API.Models
+namespace PowerMonitor.API.Models;
+
+public class Alert
 {
-    public class Alert
-    {
-        [Key]
-        public int Id { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string Message { get; set; } = string.Empty;
+    public int AlertId { get; set; }
+    public int ThresholdId { get; set; }
+    public long ReadingId { get; set; }
+    public string? Message { get; set; }
+    public bool Acknowledged { get; set; } = false;
+    public int? AcknowledgedBy { get; set; }
+    public DateTime? AcknowledgedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        public bool Acknowledged { get; set; } = false;
-        public int? AcknowledgedBy { get; set; }
-        public DateTime? AcknowledgedAt { get; set; }
+    [JsonIgnore]
+    public Threshold? Threshold { get; set; }
 
-        [ForeignKey("Generator")]
-        public int GeneratorId { get; set; }
-
-        [JsonIgnore]  // ДОДАНО – запобігає циклу
-        public Generator? Generator { get; set; }
-
-        public int? ThresholdId { get; set; }
-    }
+    [JsonIgnore]
+    public SensorReading? Reading { get; set; }
 }

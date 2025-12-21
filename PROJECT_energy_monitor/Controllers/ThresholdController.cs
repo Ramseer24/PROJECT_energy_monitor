@@ -33,7 +33,7 @@ public class ThresholdController : ControllerBase
         if (item == null) return NotFound();
 
         // У методі Update:
-        item.GeneratorId = updated.GeneratorId;                                         // решта коду без змін     // Один раз
+        item.SensorId = updated.SensorId;                                         // решта коду без змін     // Один раз
         item.MinValue = updated.MinValue;
         item.MaxValue = updated.MaxValue;
         item.AlertMessage = updated.AlertMessage;
