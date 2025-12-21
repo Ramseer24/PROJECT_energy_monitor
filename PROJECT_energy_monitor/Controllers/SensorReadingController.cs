@@ -6,7 +6,7 @@ using PowerMonitor.API.Repositories;
 namespace PowerMonitor.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]s")] // → /api/readings
+[Route("api/readings")]  // ЯВНО ВКАЗАНО, щоб уникнути плутанини
 public class SensorReadingController : ControllerBase
 {
     private readonly IGenericRepository<SensorReading> _readingRepo;
@@ -52,7 +52,7 @@ public class SensorReadingController : ControllerBase
         // === Перевірка порогів ===
         var thresholds = await _thresholdRepo.GetAllAsync();
         var relevantThresholds = thresholds.Where(t => t.IsActive &&
-            (t.SensorId == null || t.SensorId == 0 || t.SensorId == dto.GeneratorId));
+            (t.GeneratorId == null || t.GeneratorId == 0 || t.GeneratorId == dto.GeneratorId));
 
         foreach (var thresh in relevantThresholds)
         {

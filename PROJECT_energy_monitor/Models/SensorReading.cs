@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;  // ДОДАНО
 
 namespace PowerMonitor.API.Models
 {
@@ -16,6 +17,8 @@ namespace PowerMonitor.API.Models
 
         [ForeignKey("Generator")]
         public int GeneratorId { get; set; }
+
+        [JsonIgnore]  // ДОДАНО – запобігає циклу
         public Generator? Generator { get; set; }
     }
 }

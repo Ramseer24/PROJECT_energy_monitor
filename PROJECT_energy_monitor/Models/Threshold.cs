@@ -6,7 +6,9 @@ namespace PowerMonitor.API.Models
     {
         [Key]
         public int ThresholdId { get; set; }
-        public int SensorId { get; set; }  // Зв'язок з сенсором
+
+        public int GeneratorId { get; set; }  // ЗМІНЕНО з SensorId → GeneratorId (логічніше)
+
         public double? MinValue { get; set; }
         public double? MaxValue { get; set; }
         public string AlertMessage { get; set; } = "Відхилення від норми";

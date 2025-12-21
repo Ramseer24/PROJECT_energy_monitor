@@ -32,7 +32,8 @@ public class ThresholdController : ControllerBase
         var item = await _repo.GetByIdAsync(id);
         if (item == null) return NotFound();
 
-        item.SensorId = updated.SensorId;     // Один раз
+        // У методі Update:
+        item.GeneratorId = updated.GeneratorId;                                         // решта коду без змін     // Один раз
         item.MinValue = updated.MinValue;
         item.MaxValue = updated.MaxValue;
         item.AlertMessage = updated.AlertMessage;

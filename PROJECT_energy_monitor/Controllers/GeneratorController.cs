@@ -5,7 +5,7 @@ using PowerMonitor.API.Repositories;
 namespace PowerMonitor.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]s")]
+[Route("api/[controller]s")]  // → /api/generators
 public class GeneratorController : ControllerBase
 {
     private readonly IGenericRepository<Generator> _repo;
@@ -16,30 +16,43 @@ public class GeneratorController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var items = await _repo.GetAllAsync();
-        return Ok(items ?? new List<Generator>());
+        var result = items.Select(g => new
+        {
+            g.GeneratorId,
+            g.Name,
+            g.Type,
+            g.MaxPowerOutput,
+            ReadingsCount = g.Readings.Count,
+            ActiveAlertsCount = g.Alerts.Count(a => !a.Acknowledged)
+        });
+        return Ok(result);
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id) =>
-        await _repo.GetByIdAsync(id) is Generator g ? Ok(g) : NotFound();
+    public async Task<IActionResult> GetById(int id)
+    {
+        var g = await _repo.GetByIdAsync(id);
+        if (g == null) return NotFound();
+
+        return Ok(new
+        {
+            g.GeneratorId,
+            g.Name,
+            g.Type,
+            g.MaxPowerOutput,
+            ReadingsCount = g.Readings.Count,
+            ActiveAlertsCount = g.Alerts.Count(a => !a.Acknowledged)
+        });
+    }
 
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Generator generator)
     {
         if (generator == null) return BadRequest("Дані генератора не можуть бути порожніми.");
 
-        try
-        {
-            await _repo.AddAsync(generator);
-            await _repo.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = generator.GeneratorId }, generator);
-        }
-        catch (Exception ex)
-        {
-            // Просте логування та осмислена відповідь (замість 500)
-            // У реальному проекті додати ILogger
-            return StatusCode(500, $"Помилка при створенні генератора: {ex.Message}");
-        }
+        await _repo.AddAsync(generator);
+        await _repo.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetById), new { id = generator.GeneratorId }, generator);
     }
 
     [HttpPut("{id:int}")]
@@ -49,7 +62,8 @@ public class GeneratorController : ControllerBase
         if (item == null) return NotFound();
 
         item.Name = updated.Name;
-        // Додай інші поля за потребою
+        item.Type = updated.Type;
+        item.MaxPowerOutput = updated.MaxPowerOutput;
 
         await _repo.UpdateAsync(item);
         await _repo.SaveChangesAsync();

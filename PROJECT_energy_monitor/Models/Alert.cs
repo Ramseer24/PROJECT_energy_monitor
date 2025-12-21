@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;  // ДОДАНО
 
 namespace PowerMonitor.API.Models
 {
@@ -10,13 +11,14 @@ namespace PowerMonitor.API.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string Message { get; set; } = string.Empty;
 
-        // Використовуємо тільки Acknowledged (IsResolved — застаріле)
         public bool Acknowledged { get; set; } = false;
         public int? AcknowledgedBy { get; set; }
         public DateTime? AcknowledgedAt { get; set; }
 
         [ForeignKey("Generator")]
         public int GeneratorId { get; set; }
+
+        [JsonIgnore]  // ДОДАНО – запобігає циклу
         public Generator? Generator { get; set; }
 
         public int? ThresholdId { get; set; }
