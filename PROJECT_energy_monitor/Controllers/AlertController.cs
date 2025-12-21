@@ -13,8 +13,11 @@ public class AlertController : ControllerBase
     public AlertController(IGenericRepository<Alert> repo) => _repo = repo;
 
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync());
-
+    public async Task<IActionResult> GetAll()
+    {
+        var alerts = await _repo.GetAllAsync();
+        return Ok(alerts ?? new List<Alert>());  // Повертаємо порожній список замість помилки
+    }
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id) =>
         await _repo.GetByIdAsync(id) is Alert a ? Ok(a) : NotFound();

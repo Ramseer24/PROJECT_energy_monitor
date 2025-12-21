@@ -12,7 +12,12 @@ public class GeneratorController : ControllerBase
 
     public GeneratorController(IGenericRepository<Generator> repo) => _repo = repo;
 
-    [HttpGet] public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync());
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var items = await _repo.GetAllAsync();
+        return Ok(items ?? new List<Generator>());
+    }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id) =>

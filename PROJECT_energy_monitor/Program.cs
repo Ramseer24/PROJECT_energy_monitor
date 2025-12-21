@@ -5,10 +5,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// === Реєстрація DbContext з хмарною базою ===
+// === Реєстрація DbContext з жорстко зашитим рядком підключення до Render ===
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ??
-        "postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
+    options.UseNpgsql("postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
 
 // === Репозиторій ===
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -16,13 +15,13 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 // === Контролери ===
 builder.Services.AddControllers();
 
-// === Swagger (виправлено синтаксис OpenApiInfo) ===
+// === Swagger ===
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "PowerMonitor API",  // Виправлено: прибрано кому та зайвий "Title"
+        Title = "PowerMonitor API",
         Version = "v1",
         Description = "API для моніторингу генерації електроенергії (тестовий проект з імітацією даних від сенсорів)"
     });
