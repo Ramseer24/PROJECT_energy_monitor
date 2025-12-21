@@ -5,46 +5,39 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// === Реєстрація DbContext з жорстко зашитим рядком підключення до Render ===
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql("postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
-
-// === Репозиторій ===
-builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-
-// === Контролери ===
+// Додайте сервіси
 builder.Services.AddControllers();
-
-// === Swagger ===
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "PowerMonitor API",
-        Version = "v1",
-        Description = "API для моніторингу генерації електроенергії (тестовий проект з імітацією даних від сенсорів)"
-    });
-});
+builder.Services.AddSwaggerGen();  // ← Обов'язково для Swagger
 
-// === Kestrel для Render ===
-builder.WebHost.ConfigureKestrel(options =>
-{
-    var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
-    options.ListenAnyIP(int.Parse(port));
-});
+// Підключення БД (вже є у вас)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Репозиторії (вже є)
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
 var app = builder.Build();
 
-// === Swagger на корені ===
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+// === ВИПРАВЛЕННЯ: Вмикаємо Swagger завжди (навіть у Production) ===
+if (app.Environment.IsDevelopment())
 {
-    options.RoutePrefix = string.Empty;
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API v1");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+else
+{
+    // Додаємо для Production (на Render)
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API V1");
+        c.RoutePrefix = "swagger";  // /swagger
+    });
+}
 
 app.UseHttpsRedirection();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
