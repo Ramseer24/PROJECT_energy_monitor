@@ -1,13 +1,14 @@
-﻿using PowerMonitor.API.Data;  // Додано для AppDbContext
+﻿using PowerMonitor.API.Data;
 using PowerMonitor.API.Repositories;
-using Microsoft.EntityFrameworkCore;  // Додано для AddDbContext
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// === Реєстрація DbContext з підключенням до хмарної бази на Render ===
+// === Реєстрація DbContext з хмарною базою (рядок підключення з конфігурації або жорстко) ===
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql("postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ??
+        "postgresql://project_energy_monitor_user:1MPealRnWRxYeJJgW3K5EdPxBe4U8Yg7@dpg-d4utfejuibfs73f6tif0-a.frankfurt-postgres.render.com/project_energy_monitor"));
 
 // === Репозиторій ===
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -27,9 +28,16 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// === Налаштування Kestrel для Render (слухаємо PORT та 0.0.0.0) ===
+builder.WebHost.ConfigureKestrel(options =>
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "10000";
+    options.ListenAnyIP(int.Parse(port));
+});
+
 var app = builder.Build();
 
-// === Swagger на корені (доступний за https://project-energy-monitor.onrender.com/) ===
+// === Swagger на корені ===
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
@@ -37,9 +45,7 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API v1");
 });
 
-// === HTTPS обов'язковий на Render ===
 app.UseHttpsRedirection();
-
 app.MapControllers();
 
 app.Run();
