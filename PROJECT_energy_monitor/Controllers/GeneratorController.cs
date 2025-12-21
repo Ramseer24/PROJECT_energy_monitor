@@ -21,9 +21,20 @@ public class GeneratorController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] Generator generator)
     {
-        await _repo.AddAsync(generator);
-        await _repo.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = generator.GeneratorId}, generator);
+        if (generator == null) return BadRequest("Дані генератора не можуть бути порожніми.");
+
+        try
+        {
+            await _repo.AddAsync(generator);
+            await _repo.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetById), new { id = generator.GeneratorId }, generator);
+        }
+        catch (Exception ex)
+        {
+            // Просте логування та осмислена відповідь (замість 500)
+            // У реальному проекті додати ILogger
+            return StatusCode(500, $"Помилка при створенні генератора: {ex.Message}");
+        }
     }
 
     [HttpPut("{id:int}")]
