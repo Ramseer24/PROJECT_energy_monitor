@@ -11,21 +11,24 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public GenericRepository(AppDbContext context)
     {
         _context = context;
-        _dbSet = context.Set<T>();
+        _dbSet = _context.Set<T>();
     }
 
-    public async Task<T?> GetByIdAsync(int id) => await _dbSet.FindAsync(id);
+    public async Task<T?> GetByIdAsync(int id) =>
+        await _dbSet.FindAsync(id);
 
-    public async Task<IEnumerable<T>> GetAllAsync() => await _dbSet.ToListAsync();
+    public async Task<IEnumerable<T>> GetAllAsync() =>
+        await _dbSet.ToListAsync();
 
-    public async Task AddAsync(T entity) => await _dbSet.AddAsync(entity);
+    public async Task AddAsync(T entity)
+    {
+        await _dbSet.AddAsync(entity);
+    }
 
-    // ВИПРАВЛЕНО: правильне оновлення з відстеженням
     public async Task UpdateAsync(T entity)
     {
-        // Якщо сутність вже відстежується — просто оновлюємо
+        // Правильне оновлення: встановлюємо стан Modified
         _context.Entry(entity).State = EntityState.Modified;
-        // Або альтернативно: _dbSet.Update(entity);
     }
 
     public async Task DeleteAsync(int id)
@@ -37,5 +40,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
         }
     }
 
-    public async Task SaveChangesAsync() => await _context.SaveChangesAsync();
+    public async Task SaveChangesAsync() =>
+        await _context.SaveChangesAsync();
 }
