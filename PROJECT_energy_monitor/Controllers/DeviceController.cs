@@ -12,7 +12,19 @@ public class DeviceController : ControllerBase
 
     public DeviceController(IGenericRepository<Device> repo) => _repo = repo;
 
-    [HttpGet] public async Task<IActionResult> GetAll() => Ok(await _repo.GetAllAsync());
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        try
+        {
+            var devices = await _repo.GetAllAsync();
+            return Ok(devices ?? new List<Device>());
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = "An error occurred while retrieving devices", message = ex.Message });
+        }
+    }
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id) =>
