@@ -1,18 +1,15 @@
-﻿using PowerMonitor.API.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using PowerMonitor.API.Data;
 using PowerMonitor.API.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Додаємо контролери
+// Додаємо контролери та Swagger
 builder.Services.AddControllers();
-
-// Swagger завжди працює (навіть на Render у Production)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
-// Підключення до PostgreSQL (з appsettings.json)
+// Підключення до PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -21,27 +18,26 @@ builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepositor
 
 var app = builder.Build();
 
-// === Swagger доступний завжди ===
+// Swagger доступний завжди
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "PowerMonitor API V1");
-    c.RoutePrefix = "swagger";  // Доступ за https://your-url.onrender.com/swagger
+    c.RoutePrefix = "swagger";
 });
 
-// === Автоматичне створення/оновлення бази при старті ===
+// Автоматична міграція бази при старті (зручно для тестового/демо проекту)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     try
     {
-        db.Database.Migrate();  // Створює базу і таблиці, якщо їх немає
+        db.Database.Migrate(); // Створює/оновлює БД
     }
     catch (Exception ex)
     {
-        var logger = app.Services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Помилка при застосуванні міграцій бази даних");
-        // На Render помилка буде видно в логах
+        var logger = app.Logger;
+        logger.LogError(ex, "Помилка застосування міграцій");
     }
 }
 

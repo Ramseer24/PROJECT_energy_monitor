@@ -12,7 +12,7 @@ using PowerMonitor.API.Data;
 namespace PROJECT_energy_monitor.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251218194751_InitialCreate")]
+    [Migration("20251222095209_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,11 +27,11 @@ namespace PROJECT_energy_monitor.Migrations
 
             modelBuilder.Entity("PowerMonitor.API.Models.Alert", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("AlertId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AlertId"));
 
                     b.Property<bool>("Acknowledged")
                         .HasColumnType("boolean");
@@ -45,32 +45,45 @@ namespace PROJECT_energy_monitor.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("GeneratorId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Message")
-                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("ThresholdId")
+                    b.Property<long>("ReadingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ThresholdId")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
+                    b.HasKey("AlertId");
 
-                    b.HasIndex("GeneratorId");
+                    b.HasIndex("ReadingId");
+
+                    b.HasIndex("ThresholdId");
 
                     b.ToTable("Alerts");
                 });
 
-            modelBuilder.Entity("PowerMonitor.API.Models.Generator", b =>
+            modelBuilder.Entity("PowerMonitor.API.Models.Device", b =>
                 {
-                    b.Property<int>("GeneratorId")
+                    b.Property<int>("DeviceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GeneratorId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DeviceId"));
 
-                    b.Property<double>("MaxPowerOutput")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("InstalledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasColumnType("text");
+
+                    b.Property<double?>("MaxPowerOutput")
                         .HasColumnType("double precision");
 
                     b.Property<string>("Name")
@@ -81,45 +94,62 @@ namespace PROJECT_energy_monitor.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.HasKey("GeneratorId");
+                    b.HasKey("DeviceId");
 
-                    b.ToTable("Generators");
+                    b.ToTable("Devices");
+                });
+
+            modelBuilder.Entity("PowerMonitor.API.Models.Sensor", b =>
+                {
+                    b.Property<int>("SensorId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SensorId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<int>("DeviceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SensorType")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("text");
+
+                    b.HasKey("SensorId");
+
+                    b.HasIndex("DeviceId");
+
+                    b.ToTable("Sensors");
                 });
 
             modelBuilder.Entity("PowerMonitor.API.Models.SensorReading", b =>
                 {
-                    b.Property<int>("SensorReadingId")
+                    b.Property<long>("ReadingId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("ReadingId"));
+
+                    b.Property<int>("SensorId")
                         .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SensorReadingId"));
-
-                    b.Property<double>("Current")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("GeneratorId")
-                        .HasColumnType("integer");
-
-                    b.Property<double>("Power")
-                        .HasColumnType("double precision");
-
-                    b.Property<int>("Rpm")
-                        .HasColumnType("integer");
-
-                    b.Property<double>("Temperature")
-                        .HasColumnType("double precision");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<double>("Voltage")
+                    b.Property<double>("Value")
                         .HasColumnType("double precision");
 
-                    b.HasKey("SensorReadingId");
+                    b.HasKey("ReadingId");
 
-                    b.HasIndex("GeneratorId");
-
-                    b.HasIndex("Timestamp");
+                    b.HasIndex("SensorId", "Timestamp");
 
                     b.ToTable("SensorReadings");
                 });
@@ -155,6 +185,8 @@ namespace PROJECT_energy_monitor.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("ThresholdId");
+
+                    b.HasIndex("SensorId");
 
                     b.ToTable("Thresholds");
                 });
@@ -196,31 +228,66 @@ namespace PROJECT_energy_monitor.Migrations
 
             modelBuilder.Entity("PowerMonitor.API.Models.Alert", b =>
                 {
-                    b.HasOne("PowerMonitor.API.Models.Generator", "Generator")
-                        .WithMany("Alerts")
-                        .HasForeignKey("GeneratorId")
+                    b.HasOne("PowerMonitor.API.Models.SensorReading", "Reading")
+                        .WithMany()
+                        .HasForeignKey("ReadingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Generator");
+                    b.HasOne("PowerMonitor.API.Models.Threshold", "Threshold")
+                        .WithMany()
+                        .HasForeignKey("ThresholdId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reading");
+
+                    b.Navigation("Threshold");
+                });
+
+            modelBuilder.Entity("PowerMonitor.API.Models.Sensor", b =>
+                {
+                    b.HasOne("PowerMonitor.API.Models.Device", "Device")
+                        .WithMany("Sensors")
+                        .HasForeignKey("DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Device");
                 });
 
             modelBuilder.Entity("PowerMonitor.API.Models.SensorReading", b =>
                 {
-                    b.HasOne("PowerMonitor.API.Models.Generator", "Generator")
+                    b.HasOne("PowerMonitor.API.Models.Sensor", "Sensor")
                         .WithMany("Readings")
-                        .HasForeignKey("GeneratorId")
+                        .HasForeignKey("SensorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Generator");
+                    b.Navigation("Sensor");
                 });
 
-            modelBuilder.Entity("PowerMonitor.API.Models.Generator", b =>
+            modelBuilder.Entity("PowerMonitor.API.Models.Threshold", b =>
                 {
-                    b.Navigation("Alerts");
+                    b.HasOne("PowerMonitor.API.Models.Sensor", "Sensor")
+                        .WithMany("Thresholds")
+                        .HasForeignKey("SensorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
+                    b.Navigation("Sensor");
+                });
+
+            modelBuilder.Entity("PowerMonitor.API.Models.Device", b =>
+                {
+                    b.Navigation("Sensors");
+                });
+
+            modelBuilder.Entity("PowerMonitor.API.Models.Sensor", b =>
+                {
                     b.Navigation("Readings");
+
+                    b.Navigation("Thresholds");
                 });
 #pragma warning restore 612, 618
         }
